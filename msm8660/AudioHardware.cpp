@@ -104,7 +104,6 @@ static const uint32_t SND_DEVICE_TTY_HCO                    = 12;
 static const uint32_t SND_DEVICE_TTY_VCO                    = 13;
 static const uint32_t SND_DEVICE_TTY_FULL                   = 14;
 static const uint32_t SND_DEVICE_HDMI                       = 15;
-static const uint32_t SND_DEVICE_CARKIT                     = -1;
 static const uint32_t SND_DEVICE_ANC_HEADSET                = 16;
 static const uint32_t SND_DEVICE_NO_MIC_ANC_HEADSET         = 17;
 static const uint32_t SND_DEVICE_HEADPHONE_AND_SPEAKER      = 18;
@@ -121,8 +120,10 @@ static const uint32_t SND_DEVICE_I2S_SPEAKER                = 32;
 static const uint32_t SND_DEVICE_BT_EC_OFF                  = 45;
 static const uint32_t SND_DEVICE_HAC                        = 252;
 static const uint32_t SND_DEVICE_USB_HEADSET                = 253;
+static const uint32_t SND_DEVICE_CARKIT                     = -1;
 #else
 static const uint32_t SND_DEVICE_BT_EC_OFF                  = -1;
+static const uint32_t SND_DEVICE_CARKIT                     = 22;
 #endif
 #ifdef SAMSUNG_AUDIO
 static uint32_t SND_DEVICE_VOIP_HANDSET               = 50;
@@ -1810,7 +1811,7 @@ static status_t do_route_audio_rpc(uint32_t device,
     else if((device == SND_DEVICE_BT) ||
             (device == SND_DEVICE_BT_EC_OFF)) {
 #else
-    else if(device == SND_DEVICE_BT) {
+    else if(device == SND_DEVICE_BT || device == SND_DEVICE_CARKIT) {
 #endif
         new_rx_device = DEVICE_BT_SCO_RX;
         new_tx_device = DEVICE_BT_SCO_TX;
@@ -2025,12 +2026,12 @@ status_t AudioHardware::doAudioRouteOrMute(uint32_t device)
     }
 #endif
 
+#ifdef HTC_ACOUSTIC_AUDIO
     if (device == SND_DEVICE_BT) {
         if (!mBluetoothNrec)
             device = SND_DEVICE_BT_EC_OFF;
     }
 
-#ifdef HTC_ACOUSTIC_AUDIO
     if (support_aic3254) {
         aic3254_config(device);
         do_aic3254_control(device);
