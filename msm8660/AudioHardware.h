@@ -61,8 +61,8 @@ using android::Condition;
 #define EQ_DISABLE      0x0000
 #define RX_IIR_ENABLE   0x0004
 #define RX_IIR_DISABLE  0x0000
-#define LPA_BUFFER_SIZE 256*1024
-#define BUFFER_COUNT 4
+#define LPA_BUFFER_SIZE 512*1024
+#define BUFFER_COUNT 2
 #define MONO_CHANNEL_MODE 1
 
 #ifdef HTC_ACOUSTIC_AUDIO
@@ -348,6 +348,9 @@ public:
 
     virtual status_t    getNextWriteTimestamp(int64_t *timestamp);
     virtual status_t    setObserver(void *observer);
+    virtual status_t    getBufferInfo(buf_info **buf);
+    virtual status_t    isBufferAvailable(int *isAvail);
+
     void* memBufferAlloc(int nSize, int32_t *ion_fd);
 
 private:
@@ -360,6 +363,7 @@ private:
     uint32_t            mStreamVol;
 
     bool                mPaused;
+    bool                mIsDriverStarted;
     bool                mSeeking;
     bool                mReachedEOS;
     bool                mSkipWrite;
@@ -368,9 +372,6 @@ private:
     AudioHardware* mHardware;
     AudioEventObserver *mObserver;
 
-    //status_t            openDevice(char *pUseCase, bool bIsUseCase, int devices);
-
-    //status_t            closeDevice(alsa_handle_t *pDevice);
     void                createEventThread();
     void                bufferAlloc();
     void                bufferDeAlloc();

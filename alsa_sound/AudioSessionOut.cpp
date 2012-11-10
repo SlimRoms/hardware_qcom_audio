@@ -100,7 +100,7 @@ AudioSessionOutALSA::AudioSessionOutALSA(AudioHardwareALSA *parent,
     mInputBufferSize    = type ? TUNNEL_BUFFER_SIZE : LPA_BUFFER_SIZE;
     mInputBufferCount   = BUFFER_COUNT;
     mEfd = -1;
-    mEosEventReceived   =false;
+    mEosEventReceived   = false;
     mEventThread        = NULL;
     mEventThreadAlive   = false;
     mKillEventThread    = false;
@@ -234,6 +234,13 @@ ssize_t AudioSessionOutALSA::write(const void *buffer, size_t bytes)
     ALOGV("write Empty Queue size() = %d, Filled Queue size() = %d ",
          mEmptyQueue.size(),mFilledQueue.size());
 
+    if(mFilledQueue.empty() && !bytes) {
+        mReachedEOS = true;
+        mEosEventReceived = true;
+        ALOGV("mObserver: posting EOS");
+        mObserver->postEOS(0);
+    }
+
     //1.) Dequeue the buffer from empty buffer queue. Copy the data to be
     //    written into the buffer. Then Enqueue the buffer to the filled
     //    buffer queue
@@ -246,10 +253,6 @@ ssize_t AudioSessionOutALSA::write(const void *buffer, size_t bytes)
     memset(buf.memBuf, 0, mAlsaHandle->handle->period_size);
     memcpy(buf.memBuf, buffer, bytes);
     buf.bytesToWrite = bytes;
-
-    mFilledQueueMutex.lock();
-    mFilledQueue.push_back(buf);
-    mFilledQueueMutex.unlock();
 
     //2.) Write the buffer to the Driver
     ALOGV("PCM write start");
@@ -264,6 +267,10 @@ ssize_t AudioSessionOutALSA::write(const void *buffer, size_t bytes)
         }
         mReachedEOS = true;
     }
+
+    mFilledQueueMutex.lock();
+    mFilledQueue.push_back(buf);
+    mFilledQueueMutex.unlock();
     return err;
 }
 
@@ -496,6 +503,7 @@ status_t AudioSessionOutALSA::drain()
 status_t AudioSessionOutALSA::flush()
 {
     Mutex::Autolock autoLock(mLock);
+    ALOGV("AudioSessionOutALSA flush");
     int err;
     {
         Mutex::Autolock autoLockEmptyQueue(mEmptyQueueMutex);
@@ -549,7 +557,7 @@ status_t AudioSessionOutALSA::stop()
     mSkipWrite = true;
     mWriteCv.signal();
 
-    reset();
+    ALOGV("stop -");
 
     return NO_ERROR;
 }
@@ -741,9 +749,11 @@ void AudioSessionOutALSA::reset() {
     requestAndWaitForEventThreadExit();
 
     if(mAlsaHandle) {
+        ALOGV("closeDevice mAlsaHandle");
         closeDevice(mAlsaHandle);
         mAlsaHandle = NULL;
     }
+    ALOGV("Erase device list");
     for(ALSAHandleList::iterator it = mParent->mDeviceList.begin();
             it != mParent->mDeviceList.end(); ++it) {
         if((!strncmp(it->useCase, SND_USE_CASE_VERB_HIFI_TUNNEL,
@@ -755,6 +765,7 @@ void AudioSessionOutALSA::reset() {
            (!strncmp(it->useCase, SND_USE_CASE_MOD_PLAY_LPA,
                             strlen(SND_USE_CASE_MOD_PLAY_LPA)))) {
             mParent->mDeviceList.erase(it);
+            break;
         }
     }
     mParent->mLock.unlock();

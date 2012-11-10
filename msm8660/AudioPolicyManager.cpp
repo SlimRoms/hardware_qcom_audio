@@ -111,8 +111,6 @@ audio_devices_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strate
             if (device) break;
             device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_DGTL_DOCK_HEADSET;
             if (device) break;
-            device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_AUX_DIGITAL;
-            if (device) break;
             device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_ANLG_DOCK_HEADSET;
             if (device) break;
             device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_EARPIECE;
@@ -137,8 +135,6 @@ audio_devices_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strate
             device = mAvailableOutputDevices & AUDIO_DEVICE_OUT_USB_DEVICE;
             if (device) break;
             device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_DGTL_DOCK_HEADSET;
-            if (device) break;
-            device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_AUX_DIGITAL;
             if (device) break;
             device = mAvailableOutputDevices & AudioSystem::DEVICE_OUT_ANLG_DOCK_HEADSET;
             if (device) break;
@@ -262,6 +258,14 @@ audio_devices_t AudioPolicyManager::getDeviceForStrategy(routing_strategy strate
            device |= AudioSystem::DEVICE_OUT_ANC_HEADPHONE;
        }
 #endif
+       // Do not play media stream if in call and the requested device would change the hardware
+       // output routing
+       if (mPhoneState == AudioSystem::MODE_IN_CALL &&
+          !AudioSystem::isA2dpDevice((AudioSystem::audio_devices)device) &&
+           device != getDeviceForStrategy(STRATEGY_PHONE)) {
+           device = getDeviceForStrategy(STRATEGY_PHONE);
+           ALOGV("getDeviceForStrategy() incompatible media and phone devices");
+       }
        if (device == 0) {
            ALOGE("getDeviceForStrategy() no device found for STRATEGY_MEDIA");
        }
@@ -605,6 +609,36 @@ status_t AudioPolicyManager::stopOutput(audio_io_handle_t output, AudioSystem::s
         return INVALID_OPERATION;
     }
 }
+
+status_t AudioPolicyManager::stopInput(audio_io_handle_t input)
+{
+    ALOGV("stopInput() input %d", input);
+    uint32_t newDevice = NULL;
+    ssize_t index = mInputs.indexOfKey(input);
+    if (index < 0) {
+        ALOGW("stopInput() unknow input %d", input);
+        return BAD_VALUE;
+    }
+    AudioInputDescriptor *inputDesc = mInputs.valueAt(index);
+
+    if (inputDesc->mRefCount == 0) {
+        ALOGW("stopInput() input %d already stopped", input);
+        return INVALID_OPERATION;
+    } else {
+        AudioParameter param = AudioParameter();
+        param.addInt(String8(AudioParameter::keyRouting), 0);
+        ALOGV("stopInput string to setParam %s\n",  param.toString().string());
+        mpClientInterface->setParameters(input, param.toString());
+        inputDesc->mRefCount = 0;
+
+        newDevice = AudioPolicyManagerBase::getNewDevice(mPrimaryOutput, false);
+        param.addInt(String8(AudioParameter::keyRouting), (int)newDevice);
+        mpClientInterface->setParameters(mPrimaryOutput, param.toString());
+        return NO_ERROR;
+    }
+    return NO_ERROR;
+}
+
 
 // ----------------------------------------------------------------------------
 // AudioPolicyManager
