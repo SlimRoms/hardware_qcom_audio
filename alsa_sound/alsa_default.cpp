@@ -422,9 +422,11 @@ void switchDevice(alsa_handle_t *handle, uint32_t devices, uint32_t mode)
                        AudioSystem::DEVICE_OUT_SPEAKER);
         } else if ((devices & AudioSystem::DEVICE_OUT_BLUETOOTH_SCO) ||
                    (devices & AudioSystem::DEVICE_OUT_BLUETOOTH_SCO_HEADSET) ||
-                   (devices & AudioSystem::DEVICE_IN_BLUETOOTH_SCO_HEADSET)) {
+                   (devices & AudioSystem::DEVICE_IN_BLUETOOTH_SCO_HEADSET) ||
+                   (devices & AudioSystem::DEVICE_OUT_BLUETOOTH_SCO_CARKIT)) {
             devices = devices | (AudioSystem::DEVICE_IN_BLUETOOTH_SCO_HEADSET |
-                      AudioSystem::DEVICE_OUT_BLUETOOTH_SCO);
+                      AudioSystem::DEVICE_OUT_BLUETOOTH_SCO |
+                      AudioSystem::DEVICE_OUT_BLUETOOTH_SCO_CARKIT);
 #ifdef QCOM_ANC_HEADSET_ENABLED
         } else if ((devices & AudioSystem::DEVICE_OUT_ANC_HEADSET) ||
                    (devices & AudioSystem::DEVICE_IN_ANC_HEADSET)) {
