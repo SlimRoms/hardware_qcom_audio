@@ -22,11 +22,15 @@ ifeq ($(strip $(BOARD_USES_SEPERATED_AUDIO_INPUT)),true)
 LOCAL_CFLAGS += -DSEPERATED_AUDIO_INPUT
 endif
 
+ifeq ($(strip $(BOARD_HAVE_LOW_LATENCY_AUDIO)),true)
+LOCAL_CFLAGS += -DQCOM_LOW_LATENCY_AUDIO_ENABLED
+endif
+
 LOCAL_SRC_FILES := \
-  AudioHardwareALSA.cpp 	\
-  AudioStreamOutALSA.cpp 	\
-  AudioStreamInALSA.cpp 	\
-  ALSAStreamOps.cpp		\
+  AudioHardwareALSA.cp \
+  AudioStreamOutALSA.cpp \
+  AudioStreamInALSA.cpp \
+  ALSAStreamOps.cpp \
   audio_hw_hal.cpp \
   AudioUsbALSA.cpp \
   AudioUtil.cpp
