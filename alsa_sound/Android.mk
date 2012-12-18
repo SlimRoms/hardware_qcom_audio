@@ -27,10 +27,10 @@ LOCAL_CFLAGS += -DQCOM_LOW_LATENCY_AUDIO_ENABLED
 endif
 
 LOCAL_SRC_FILES := \
-  AudioHardwareALSA.cp \
-  AudioStreamOutALSA.cpp \
-  AudioStreamInALSA.cpp \
-  ALSAStreamOps.cpp \
+  AudioHardwareALSA.cpp 	\
+  AudioStreamOutALSA.cpp 	\
+  AudioStreamInALSA.cpp 	\
+  ALSAStreamOps.cpp		\
   audio_hw_hal.cpp \
   AudioUsbALSA.cpp \
   AudioUtil.cpp
