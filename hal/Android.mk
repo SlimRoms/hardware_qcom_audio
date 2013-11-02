@@ -16,6 +16,10 @@ LOCAL_SRC_FILES := \
 	audio_hw.c \
 	$(AUDIO_PLATFORM)/platform.c
 
+ifeq ($(strip $(AUDIO_FEATURE_DEEP_BUFFER_PRIMARY)),true)
+    LOCAL_CFLAGS += -DDEEP_BUFFER_PRIMARY
+endif
+
 LOCAL_SHARED_LIBRARIES := \
 	liblog \
 	libcutils \
