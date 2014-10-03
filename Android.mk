@@ -1,4 +1,5 @@
-ifeq ($(TARGET_QCOM_AUDIO_VARIANT),)
+ifeq ($(call my-dir),$(call project-path-for,qcom-audio)/default)
+
 ifneq ($(filter msm8960 msm8226 msm8x26 msm8974 msm8x74 msm8x84 msm8084,$(TARGET_BOARD_PLATFORM)),)
 
 MY_LOCAL_PATH := $(call my-dir)
@@ -13,4 +14,5 @@ include $(MY_LOCAL_PATH)/post_proc/Android.mk
 endif
 
 endif
+
 endif
