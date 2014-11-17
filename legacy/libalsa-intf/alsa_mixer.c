@@ -1,6 +1,6 @@
 /*
 ** Copyright 2010, The Android Open-Source Project
-** Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
+** Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
 **
 ** Licensed under the Apache License, Version 2.0 (the "License");
 ** you may not use this file except in compliance with the License.
@@ -128,6 +128,10 @@ void mixer_close(struct mixer *mixer)
 {
     unsigned n,m;
 
+    if (!mixer) {
+         ALOGE("mixer_close:Invalid Mixer Control");
+         return;
+    }
     if (mixer->fd >= 0)
         close(mixer->fd);
 
@@ -365,9 +369,10 @@ int mixer_ctl_read_tlv(struct mixer_ctl *ctl,
                 }
             break;
         }
+        case SNDRV_CTL_TLVT_DB_MINMAX:
         case SNDRV_CTL_TLVT_DB_LINEAR: {
                 int idx = 2;
-                ALOGV("dBLiner-");
+                ALOGV("dBLiner-/dbminmax");
                 if (size != 2 * sizeof(unsigned int)) {
                         while (size > 0) {
                                 ALOGV("0x%08x,", tlv[idx++]);
@@ -448,6 +453,64 @@ void mixer_ctl_get(struct mixer_ctl *ctl, unsigned *value)
     ALOGV("\n");
 }
 
+void mixer_ctl_get_mulvalues(struct mixer_ctl *ctl, unsigned **value, unsigned *count)
+{
+    struct snd_ctl_elem_value ev;
+    unsigned int n;
+
+    memset(&ev, 0, sizeof(ev));
+    ev.id.numid = ctl->info->id.numid;
+    if (ioctl(ctl->mixer->fd, SNDRV_CTL_IOCTL_ELEM_READ, &ev))
+        return;
+    ALOGV("%s:", ctl->info->id.name);
+
+    switch (ctl->info->type) {
+    case SNDRV_CTL_ELEM_TYPE_BYTES:
+        for (n = 0; n < ctl->info->count; n++)
+            ALOGV(" %ld", ev.value.bytes.data[n]);
+        for (n = 0; n < ctl->info->count; n++)
+            *(value[n]) = ev.value.bytes.data[n];
+        *count = ctl->info->count;
+        break;
+    case SNDRV_CTL_ELEM_TYPE_BOOLEAN:
+        for (n = 0; n < ctl->info->count; n++)
+            ALOGV(" %s", ev.value.integer.value[n] ? "on" : "off");
+        for (n=0; n < ctl->info->count; n++)
+            *(value[n]) = ev.value.integer.value[n];
+        *count = ctl->info->count;
+        break;
+    case SNDRV_CTL_ELEM_TYPE_INTEGER: {
+        for (n = 0; n < ctl->info->count; n++)
+            ALOGV(" %ld", ev.value.integer.value[n]);
+        for (n = 0; n < ctl->info->count; n++)
+            *(value[n]) = ev.value.integer.value[n];
+        *count = ctl->info->count;
+        break;
+    }
+    case SNDRV_CTL_ELEM_TYPE_INTEGER64:
+        for (n = 0; n < ctl->info->count; n++)
+            ALOGV(" %lld", ev.value.integer64.value[n]);
+        for (n = 0; n < ctl->info->count; n++)
+            *(value[n]) = ev.value.integer64.value[n];
+        *count = ctl->info->count;
+        break;
+    case SNDRV_CTL_ELEM_TYPE_ENUMERATED:
+        for (n = 0; n < ctl->info->count; n++) {
+            unsigned v = ev.value.enumerated.item[n];
+            ALOGV(" %d (%s)", v,
+                   (v < ctl->info->value.enumerated.items) ? ctl->ename[v] : "???");
+        }
+        for (n = 0; n < ctl->info->count; n++)
+            *(value[n]) = ev.value.enumerated.item[n];
+        *count = ctl->info->count;
+        break;
+    default:
+        *count = 0;
+        ALOGV(" ???");
+    }
+    ALOGV("\n");
+}
+
 static long scale_int(struct snd_ctl_elem_info *ei, unsigned _percent)
 {
     long percent;
@@ -488,7 +551,6 @@ int mixer_ctl_mulvalues(struct mixer_ctl *ctl, int count, char ** argv)
     if (count < ctl->info->count || count > ctl->info->count)
         return -EINVAL;
 
-
     memset(&ev, 0, sizeof(ev));
     ev.id.numid = ctl->info->id.numid;
     switch (ctl->info->type) {
@@ -508,6 +570,13 @@ int mixer_ctl_mulvalues(struct mixer_ctl *ctl, int count, char ** argv)
              long long value_ll = scale_int64(ctl->info, atoi(argv[n]));
              fprintf( stderr, "ll_value = %lld\n", value_ll);
              ev.value.integer64.value[n] = value_ll;
+        }
+        break;
+    }
+    case SNDRV_CTL_ELEM_TYPE_ENUMERATED: {
+        for (n = 0; n < ctl->info->count; n++) {
+            fprintf( stderr, "Value: %d idx:%d\n", atoi(argv[n]), n);
+            ev.value.enumerated.item[n] = (unsigned int)atoi(argv[n]);
         }
         break;
     }
@@ -542,7 +611,8 @@ int mixer_ctl_set(struct mixer_ctl *ctl, unsigned percent)
         } else if (!mixer_ctl_read_tlv(ctl, tlv, &min, &max, &tlv_type)) {
             switch(tlv_type) {
             case SNDRV_CTL_TLVT_DB_LINEAR:
-                ALOGV("tlv db linear: b4 %d\n", percent);
+            case SNDRV_CTL_TLVT_DB_MINMAX:
+                ALOGV("tlv db linear/db minmax: b4 %d\n", percent);
 
 		if (min < 0) {
 			max = max - min;
@@ -593,6 +663,12 @@ int mixer_ctl_set(struct mixer_ctl *ctl, unsigned percent)
         struct snd_aes_iec958 *iec958;
         iec958 = (struct snd_aes_iec958 *)percent;
         memcpy(ev.value.iec958.status,iec958->status,SPDIF_CHANNEL_STATUS_SIZE);
+        break;
+    }
+    case SNDRV_CTL_ELEM_TYPE_ENUMERATED: {
+        for (n = 0; n < ctl->info->count; n++) {
+            ev.value.enumerated.item[n] = (unsigned int)percent;
+        }
         break;
     }
     default:
