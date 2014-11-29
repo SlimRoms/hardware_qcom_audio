@@ -89,6 +89,8 @@ endif
 
 include $(BUILD_SHARED_LIBRARY)
 
+ifeq ($(USE_LEGACY_AUDIO_POLICY), 1)
+
 # The audio policy is implemented on top of legacy policy code
 include $(CLEAR_VARS)
 
@@ -120,3 +122,5 @@ endif
 LOCAL_C_INCLUDES := hardware/libhardware_legacy/audio
 
 include $(BUILD_SHARED_LIBRARY)
+
+endif
