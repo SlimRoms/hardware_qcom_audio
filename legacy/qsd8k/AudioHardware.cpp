@@ -38,7 +38,7 @@
 #include <media/mediarecorder.h>
 
 extern "C" {
-#include "msm_audio.h"
+#include <linux/msm_audio.h>
 #include <linux/a1026.h>
 #include <linux/tpa2018d1.h>
 }
@@ -217,6 +217,17 @@ AudioHardware::~AudioHardware()
 status_t AudioHardware::initCheck()
 {
     return mInit ? NO_ERROR : NO_INIT;
+}
+
+// default implementation calls its "without flags" counterpart 
+AudioStreamOut* AudioHardware::openOutputStreamWithFlags(uint32_t devices,
+                                          audio_output_flags_t flags,
+                                          int *format,
+                                          uint32_t *channels,
+                                          uint32_t *sampleRate,
+                                          status_t *status)
+{
+    return openOutputStream(devices, format, channels, sampleRate, status);
 }
 
 AudioStreamOut* AudioHardware::openOutputStream(
