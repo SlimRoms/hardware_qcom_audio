@@ -1,8 +1,7 @@
 
-ifneq ($(BUILD_TINY_ANDROID),true)
-
 LOCAL_PATH := $(call my-dir)
 
+ifeq ($(USE_LEGACY_AUDIO_POLICY), 1)
 include $(CLEAR_VARS)
 
 LOCAL_MODULE:= audio_policy.$(TARGET_BOARD_PLATFORM)
@@ -26,7 +25,7 @@ ifeq ($(BOARD_HAVE_BLUETOOTH),true)
 endif
 
 include $(BUILD_SHARED_LIBRARY)
-
+endif
 
 include $(CLEAR_VARS)
 
@@ -55,6 +54,4 @@ LOCAL_CFLAGS += -fno-short-enums
 #endif
 
 include $(BUILD_SHARED_LIBRARY)
-
-endif # not BUILD_TINY_ANDROID
 
