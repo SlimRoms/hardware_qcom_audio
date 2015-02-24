@@ -3837,7 +3837,7 @@ AudioHardware::AudioStreamOutDirect::~AudioStreamOutDirect()
     ALOGV("AudioStreamOutDirect destructor");
     mHardware->mVoipOutActive = false;
     standby();
-}   
+}
 
 ssize_t AudioHardware::AudioStreamOutDirect::write(const void* buffer, size_t bytes)
 {
@@ -3845,11 +3845,11 @@ ssize_t AudioHardware::AudioStreamOutDirect::write(const void* buffer, size_t by
     status_t status = NO_INIT;
     size_t count = bytes;
     const uint8_t* p = static_cast<const uint8_t*>(buffer);
-    
+
     if (mStandby) {
         if(mHardware->mVoipFd >= 0) {
             mFd = mHardware->mVoipFd;
-            
+
             mHardware->mVoipOutActive = true;
             if (mHardware->mVoipInActive)
                 mHardware->setupDeviceforVoipCall(true);
