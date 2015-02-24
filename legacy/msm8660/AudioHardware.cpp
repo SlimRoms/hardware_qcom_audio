@@ -989,7 +989,7 @@ status_t AudioHardware::initCheck()
 }
 // default implementation calls its "without flags" counterpart
 AudioStreamOut* AudioHardware::openOutputStreamWithFlags(uint32_t devices,
-                                          audio_output_flags_t flags,
+                                          audio_output_flags_t flags __unused,
                                           int *format,
                                           uint32_t *channels,
                                           uint32_t *sampleRate,
