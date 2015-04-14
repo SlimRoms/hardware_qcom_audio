@@ -15,7 +15,7 @@ c_sources = alsa_mixer.c \
             alsa_ucm.c
 
 h_sources = alsa_ucm.h \
-            msm8960_use_cases.h \
+            msm8660_use_cases.h \
             alsa_audio.h
 
 library_includedir = $(pkgincludedir)

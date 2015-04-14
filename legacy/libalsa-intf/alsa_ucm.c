@@ -61,7 +61,7 @@
 #include <stdint.h>
 
 #include <linux/ioctl.h>
-#include "msm8960_use_cases.h"
+#include "msm8660_use_cases.h"
 
 static void (*acdb_send_voice_cal)(int, int);
 static void (*acdb_send_audio_cal)(int, int);
