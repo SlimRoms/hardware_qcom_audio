@@ -280,6 +280,9 @@ AudioHardwareALSA::AudioHardwareALSA() :
             } else if (strstr(soundCardInfo, "msm8960-snd-card")) {
                 codec_rev = 2;
                 break;
+            } else if (strstr(soundCardInfo, "msm8660-snd-card")) {
+                codec_rev = 2;
+                break;
             } else if (strstr(soundCardInfo, "msm8930-sitar-snd-card")) {
                 codec_rev = 3;
                 property_get("ro.baseband", baseband, "");
@@ -352,7 +355,7 @@ AudioHardwareALSA::AudioHardwareALSA() :
            property_get("ro.board.platform", platform, "");
            property_get("ro.baseband", baseband, "");
            property_get("ro.baseband.arch", baseband_arch, "");
-           if (!strcmp("msm8960", platform) &&
+           if (!strcmp("msm8660", platform) &&
                (!strcmp("mdm", baseband) || !strcmp("sglte2", baseband) ||
                 !strcmp("mdm", baseband_arch))) {
                ALOGV("Detected Fusion tabla 2.x");

@@ -56,7 +56,7 @@ IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.*/
 extern "C" {
    #include <sound/asound.h>
    #include "alsa_audio.h"
-   #include "msm8960_use_cases.h"
+   #include "msm8660_use_cases.h"
 }
 
 #include <hardware/hardware.h>

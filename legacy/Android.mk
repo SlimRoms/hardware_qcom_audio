@@ -6,3 +6,12 @@ ifeq ($(strip $(BOARD_USES_ALSA_AUDIO)),true)
     include $(AUDIO_HW_ROOT)/mm-audio/Android.mk
     include $(AUDIO_HW_ROOT)/audiod/Android.mk
 endif
+
+ifeq ($(TARGET_BOARD_PLATFORM),msm8660)
+
+ifeq ($(strip $(BOARD_USES_LEGACY_ALSA_AUDIO)),true)
+    include $(AUDIO_HW_ROOT)/msm8660/Android.mk
+    include $(AUDIO_HW_ROOT)/mm-audio/Android.mk
+endif
+    
+endif
