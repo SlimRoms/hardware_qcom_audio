@@ -2170,7 +2170,7 @@ static void init_platform_data(struct audio_device *adev)
      */
     property_get("ro.board.platform", platform, "");
     property_get("ro.baseband", baseband, "");
-    if (!strcmp("msm8960", platform) && !strcmp("mdm", baseband)) {
+    if (!strcmp("msm8660", platform) && !strcmp("mdm", baseband)) {
         adev->csd_client = dlopen(LIB_CSD_CLIENT, RTLD_NOW);
         if (adev->csd_client == NULL)
             ALOGE("%s: DLOPEN failed for %s", __func__, LIB_CSD_CLIENT);

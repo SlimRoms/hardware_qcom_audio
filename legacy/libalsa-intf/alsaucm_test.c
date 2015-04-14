@@ -42,7 +42,7 @@
 #endif
 
 #include "alsa_ucm.h"
-#include "msm8960_use_cases.h"
+#include "msm8660_use_cases.h"
 
 /* Function prototypes */
 static void print_help_menu(void);

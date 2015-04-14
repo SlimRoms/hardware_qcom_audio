@@ -208,6 +208,10 @@ ifeq ($(TARGET_BOARD_PLATFORM),msm8960)
   LOCAL_MODULE := audio.primary.msm8960
 endif
 
+ifeq ($(TARGET_BOARD_PLATFORM),msm8660)
+  LOCAL_MODULE := audio.primary.msm8660
+endif
+
 ifeq ($(TARGET_BOARD_PLATFORM),msm8610)
   LOCAL_MODULE := audio.primary.msm8610
 endif
@@ -232,6 +236,10 @@ endif
 
 ifeq ($(TARGET_BOARD_PLATFORM),msm8960)
   LOCAL_MODULE := audio_policy.msm8960
+endif
+
+ifeq ($(TARGET_BOARD_PLATFORM),msm8660)
+  LOCAL_MODULE := audio_policy.msm8660
 endif
 
 ifeq ($(TARGET_BOARD_PLATFORM),msm8610)
