@@ -1,7 +1,6 @@
 /*
  * Copyright (C) 2011 The Android Open Source Project
- * Copyright (c) 2011-2013, The Linux Foundation. All rights reserved.
- * Not a Contribution.
+ * Copyright (c) 2011-2012, Code Aurora Forum. All rights reserved.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +15,7 @@
  * limitations under the License.
  */
 
-#define LOG_TAG "qcom_audio_hw_hal"
+#define LOG_TAG "audio.primary.msm8660"
 //#define LOG_NDEBUG 0
 
 #include <stdint.h>
@@ -24,10 +23,6 @@
 #include <hardware/hardware.h>
 #include <system/audio.h>
 #include <hardware/audio.h>
-
-#ifdef USES_AUDIO_AMPLIFIER
-#include <audio_amplifier.h>
-#endif
 
 #include <hardware_legacy/AudioHardwareInterface.h>
 #include <hardware_legacy/AudioSystemLegacy.h>
@@ -58,7 +53,6 @@ struct qcom_stream_in {
     AudioStreamIn *qcom_in;
 };
 
-
 enum {
     HAL_API_REV_1_0,
     HAL_API_REV_2_0,
@@ -79,20 +73,18 @@ static uint32_t audio_device_conv_table[][HAL_API_REV_NUM] =
     { AudioSystem::DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES, AUDIO_DEVICE_OUT_BLUETOOTH_A2DP_HEADPHONES },
     { AudioSystem::DEVICE_OUT_BLUETOOTH_A2DP_SPEAKER, AUDIO_DEVICE_OUT_BLUETOOTH_A2DP_SPEAKER },
     { AudioSystem::DEVICE_OUT_AUX_DIGITAL, AUDIO_DEVICE_OUT_AUX_DIGITAL },
-#ifdef QCOM_USBAUDIO_ENABLED
     { AudioSystem::DEVICE_OUT_ANLG_DOCK_HEADSET, AUDIO_DEVICE_OUT_ANLG_DOCK_HEADSET },
     { AudioSystem::DEVICE_OUT_DGTL_DOCK_HEADSET, AUDIO_DEVICE_OUT_DGTL_DOCK_HEADSET },
-    { AudioSystem::DEVICE_OUT_USB_ACCESSORY, AUDIO_DEVICE_OUT_USB_ACCESSORY },
-    { AudioSystem::DEVICE_OUT_ANLG_DOCK_HEADSET, AUDIO_DEVICE_OUT_USB_DEVICE },
-#endif
-#ifdef QCOM_PROXY_DEVICE_ENABLED
-    { AudioSystem::DEVICE_OUT_PROXY, AUDIO_DEVICE_OUT_PROXY },
-#endif
+    { AudioSystem::DEVICE_OUT_DEFAULT, AUDIO_DEVICE_OUT_DEFAULT },
 #ifdef QCOM_FM_ENABLED
     { AudioSystem::DEVICE_OUT_FM, AUDIO_DEVICE_OUT_FM },
+#endif
+#ifdef QCOM_FM_TX_ENABLED
     { AudioSystem::DEVICE_OUT_FM_TX, AUDIO_DEVICE_OUT_FM_TX },
 #endif
-    { AudioSystem::DEVICE_OUT_DEFAULT, AUDIO_DEVICE_OUT_DEFAULT },
+#ifdef QCOM_VOIP_ENABLED
+    //{ AudioSystem::DEVICE_OUT_DIRECTOUTPUT, AUDIO_DEVICE_OUT_DIRECTOUTPUT },
+#endif
     /* input devices */
     { AudioSystem::DEVICE_IN_COMMUNICATION, AUDIO_DEVICE_IN_COMMUNICATION },
     { AudioSystem::DEVICE_IN_AMBIENT, AUDIO_DEVICE_IN_AMBIENT },
@@ -102,24 +94,13 @@ static uint32_t audio_device_conv_table[][HAL_API_REV_NUM] =
     { AudioSystem::DEVICE_IN_AUX_DIGITAL, AUDIO_DEVICE_IN_AUX_DIGITAL },
     { AudioSystem::DEVICE_IN_VOICE_CALL, AUDIO_DEVICE_IN_VOICE_CALL },
     { AudioSystem::DEVICE_IN_BACK_MIC, AUDIO_DEVICE_IN_BACK_MIC },
-#ifdef QCOM_USBAUDIO_ENABLED
-    { AudioSystem::DEVICE_IN_ANLG_DOCK_HEADSET, AUDIO_DEVICE_IN_USB_DEVICE },
-#endif
-#ifdef QCOM_PROXY_DEVICE_ENABLED
-    { AudioSystem::DEVICE_IN_PROXY, AUDIO_DEVICE_IN_PROXY },
-#endif
+    { AudioSystem::DEVICE_IN_DEFAULT, AUDIO_DEVICE_IN_DEFAULT },
 #ifdef QCOM_FM_ENABLED
     { AudioSystem::DEVICE_IN_FM_RX, AUDIO_DEVICE_IN_FM_RX },
     { AudioSystem::DEVICE_IN_FM_RX_A2DP, AUDIO_DEVICE_IN_FM_RX_A2DP },
 #endif
-    { AudioSystem::DEVICE_IN_DEFAULT, AUDIO_DEVICE_IN_DEFAULT },
 };
 
-// the "audio_devices" enumeration defined in hardware/libhardware_legacy is obsolete,
-// use type "audio_devices_t" and audio device enumeration from system/audio.h instead.
-// Do not use convert_audio_device if audio hal uses device definition from system/core
-// There's no need to conver audio device if HAL uses AUDIO_DEVICE_XXX defintions instead
-// of AudioSystem::Device_XXX.
 static uint32_t convert_audio_device(uint32_t from_device, int from_rev, int to_rev)
 {
     const uint32_t k_num_devices = sizeof(audio_device_conv_table)/sizeof(uint32_t)/HAL_API_REV_NUM;
@@ -154,12 +135,12 @@ static uint32_t out_get_sample_rate(const struct audio_stream *stream)
     return out->qcom_out->sampleRate();
 }
 
-static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate)
+static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate __unused)
 {
     struct qcom_stream_out *out =
         reinterpret_cast<struct qcom_stream_out *>(stream);
 
-    ALOGV("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
+    ALOGE("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
     /* TODO: implement this */
     return 0;
 }
@@ -185,11 +166,11 @@ static audio_format_t out_get_format(const struct audio_stream *stream)
     return (audio_format_t)out->qcom_out->format();
 }
 
-static int out_set_format(struct audio_stream *stream, audio_format_t format)
+static int out_set_format(struct audio_stream *stream, audio_format_t format __unused)
 {
     struct qcom_stream_out *out =
         reinterpret_cast<struct qcom_stream_out *>(stream);
-    ALOGV("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
+    ALOGE("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
     /* TODO: implement me */
     return 0;
 }
@@ -267,6 +248,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void* buffer,
 {
     struct qcom_stream_out *out =
         reinterpret_cast<struct qcom_stream_out *>(stream);
+    usleep(5);
     return out->qcom_out->write(buffer, bytes);
 }
 
@@ -277,7 +259,7 @@ static int out_get_render_position(const struct audio_stream_out *stream,
         reinterpret_cast<const struct qcom_stream_out *>(stream);
     return out->qcom_out->getRenderPosition(dsp_frames);
 }
-#ifdef QCOM_TUNNEL_LPA_ENABLED
+
 static int out_set_observer(const struct audio_stream_out *stream,
                                    void *observer)
 {
@@ -329,14 +311,13 @@ static status_t out_stop(struct audio_stream_out *stream)
         reinterpret_cast<struct qcom_stream_out *>(stream);
     return out->qcom_out->stop();
 }
-#endif //QCOM_TUNNEL_LPA_ENABLED
 
-static int out_add_audio_effect(const struct audio_stream *stream, effect_handle_t effect)
+static int out_add_audio_effect(const struct audio_stream *stream __unused, effect_handle_t effect __unused)
 {
     return 0;
 }
 
-static int out_remove_audio_effect(const struct audio_stream *stream, effect_handle_t effect)
+static int out_remove_audio_effect(const struct audio_stream *stream __unused, effect_handle_t effect __unused)
 {
     return 0;
 }
@@ -350,13 +331,12 @@ static int out_get_next_write_timestamp(const struct audio_stream_out *stream,
 }
 
 static int out_get_presentation_position(const struct audio_stream_out *stream,
-                                         uint64_t *frames, struct timespec *timestamp)
+    uint64_t *frames, struct timespec *timestamp)
 {
     const struct qcom_stream_out *out =
         reinterpret_cast<const struct qcom_stream_out *>(stream);
     return out->qcom_out->getPresentationPosition(frames, timestamp);
 }
-
 
 /** audio_stream_in implementation **/
 static uint32_t in_get_sample_rate(const struct audio_stream *stream)
@@ -366,12 +346,12 @@ static uint32_t in_get_sample_rate(const struct audio_stream *stream)
     return in->qcom_in->sampleRate();
 }
 
-static int in_set_sample_rate(struct audio_stream *stream, uint32_t rate)
+static int in_set_sample_rate(struct audio_stream *stream, uint32_t rate __unused)
 {
     struct qcom_stream_in *in =
         reinterpret_cast<struct qcom_stream_in *>(stream);
 
-    ALOGV("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
+    ALOGE("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
     /* TODO: implement this */
     return 0;
 }
@@ -397,11 +377,11 @@ static audio_format_t in_get_format(const struct audio_stream *stream)
     return (audio_format_t)in->qcom_in->format();
 }
 
-static int in_set_format(struct audio_stream *stream, audio_format_t format)
+static int in_set_format(struct audio_stream *stream, audio_format_t format __unused)
 {
     struct qcom_stream_in *in =
         reinterpret_cast<struct qcom_stream_in *>(stream);
-    ALOGV("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
+    ALOGE("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
     /* TODO: implement me */
     return 0;
 }
@@ -509,10 +489,10 @@ static inline const struct qcom_audio_device * to_cladev(const struct audio_hw_d
 static uint32_t adev_get_supported_devices(const struct audio_hw_device *dev)
 {
     /* XXX: The old AudioHardwareInterface interface is not smart enough to
-     * tell us this, so we'll lie and basically tell AF that we support the
-     * below input/output devices and cross our fingers. To do things properly,
-     * audio hardware interfaces that need advanced features (like this) should
-     * convert to the new HAL interface and not use this wrapper. */
+* tell us this, so we'll lie and basically tell AF that we support the
+* below input/output devices and cross our fingers. To do things properly,
+* audio hardware interfaces that need advanced features (like this) should
+* convert to the new HAL interface and not use this wrapper. */
     return (/* OUT */
             AUDIO_DEVICE_OUT_EARPIECE |
             AUDIO_DEVICE_OUT_SPEAKER |
@@ -530,9 +510,6 @@ static uint32_t adev_get_supported_devices(const struct audio_hw_device *dev)
             AUDIO_DEVICE_OUT_USB_ACCESSORY |
             AUDIO_DEVICE_OUT_USB_DEVICE |
             AUDIO_DEVICE_OUT_REMOTE_SUBMIX |
-#ifdef QCOM_PROXY_DEVICE_ENABLED
-            AUDIO_DEVICE_OUT_PROXY |
-#endif
 #ifdef QCOM_FM_ENABLED
             AUDIO_DEVICE_OUT_FM |
             AUDIO_DEVICE_OUT_FM_TX |
@@ -552,9 +529,6 @@ static uint32_t adev_get_supported_devices(const struct audio_hw_device *dev)
             AUDIO_DEVICE_IN_DGTL_DOCK_HEADSET |
             AUDIO_DEVICE_IN_USB_ACCESSORY |
             AUDIO_DEVICE_IN_USB_DEVICE |
-#ifdef QCOM_PROXY_DEVICE_ENABLED
-            AUDIO_DEVICE_IN_PROXY |
-#endif
 #ifdef QCOM_FM_ENABLED
             AUDIO_DEVICE_IN_FM_RX |
             AUDIO_DEVICE_IN_FM_RX_A2DP |
@@ -587,15 +561,17 @@ static int adev_get_master_volume(struct audio_hw_device *dev, float *volume) {
     return qadev->hwif->getMasterVolume(volume);
 }
 
+#ifdef QCOM_FM_ENABLED
+static int adev_set_fm_volume(struct audio_hw_device *dev, float volume)
+{
+    struct qcom_audio_device *qadev = to_ladev(dev);
+    return qadev->hwif->setFmVolume(volume);
+}
+#endif
+
 static int adev_set_mode(struct audio_hw_device *dev, audio_mode_t mode)
 {
     struct qcom_audio_device *qadev = to_ladev(dev);
-
-#ifdef USES_AUDIO_AMPLIFIER
-    if (amplifier_set_mode(mode) != 0)
-        ALOGE("Failed setting amplifier mode");
-#endif
-
     return qadev->hwif->setMode(mode);
 }
 
@@ -632,16 +608,17 @@ static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
 {
     const struct qcom_audio_device *qadev = to_cladev(dev);
     uint8_t channelCount = popcount(config->channel_mask);
-    return qadev->hwif->getInputBufferSize(config->sample_rate, config->format, channelCount);
+    return qadev->hwif->getInputBufferSize(config->sample_rate,config->format,channelCount);
 }
 
 static int adev_open_output_stream(struct audio_hw_device *dev,
-                                   audio_io_handle_t handle,
+                                   audio_io_handle_t handle __unused,
                                    audio_devices_t devices,
                                    audio_output_flags_t flags,
                                    struct audio_config *config,
                                    struct audio_stream_out **stream_out,
                                    const char * address __unused)
+
 {
     struct qcom_audio_device *qadev = to_ladev(dev);
     status_t status;
@@ -655,8 +632,7 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     devices = convert_audio_device(devices, HAL_API_REV_2_0, HAL_API_REV_1_0);
     status = static_cast<audio_output_flags_t> (flags);
 
-    out->qcom_out = qadev->hwif->openOutputStream(devices,
-                                                    (int *)&config->format,
+    out->qcom_out = qadev->hwif->openOutputStream(devices, (int *) &config->format,
                                                     &config->channel_mask,
                                                     &config->sample_rate,
                                                     &status);
@@ -682,8 +658,6 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     out->stream.write = out_write;
     out->stream.get_render_position = out_get_render_position;
     out->stream.get_next_write_timestamp = out_get_next_write_timestamp;
-    out->stream.get_presentation_position = out_get_presentation_position;
-#ifdef QCOM_TUNNEL_LPA_ENABLED
     out->stream.start = out_start;
     out->stream.pause = out_pause;
     out->stream.flush = out_flush;
@@ -691,7 +665,7 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     out->stream.set_observer = out_set_observer;
     out->stream.get_buffer_info = out_get_buffer_info;
     out->stream.is_buffer_available = out_is_buffer_available;
-#endif
+
     *stream_out = &out->stream;
     return 0;
 
@@ -713,10 +687,10 @@ static void adev_close_output_stream(struct audio_hw_device *dev,
 
 /** This method creates and opens the audio hardware input stream */
 static int adev_open_input_stream(struct audio_hw_device *dev,
-                                  audio_io_handle_t handle,
+                                  audio_io_handle_t handle __unused,
                                   audio_devices_t devices,
                                   audio_config *config,
-                                  audio_stream_in **stream_in, audio_input_flags_t flags,
+                                  audio_stream_in **stream_in, audio_input_flags_t flags __unused,
                                   const char * address __unused,
                                   audio_source_t source __unused)
 {
@@ -791,11 +765,6 @@ static int qcom_adev_close(hw_device_t* device)
                         reinterpret_cast<struct audio_hw_device *>(device);
     struct qcom_audio_device *qadev = to_ladev(hwdev);
 
-#ifdef USES_AUDIO_AMPLIFIER
-    if (amplifier_close() != 0)
-        ALOGE("Amplifier close failed");
-#endif
-
     if (!qadev)
         return 0;
 
@@ -829,6 +798,9 @@ static int qcom_adev_open(const hw_module_t* module, const char* name,
     qadev->device.set_voice_volume = adev_set_voice_volume;
     qadev->device.set_master_volume = adev_set_master_volume;
     qadev->device.get_master_volume = adev_get_master_volume;
+#ifdef QCOM_FM_ENABLED
+    qadev->device.set_fm_volume = adev_set_fm_volume;
+#endif
     qadev->device.set_mode = adev_set_mode;
     qadev->device.set_mic_mute = adev_set_mic_mute;
     qadev->device.get_mic_mute = adev_get_mic_mute;
@@ -849,11 +821,6 @@ static int qcom_adev_open(const hw_module_t* module, const char* name,
 
     *device = &qadev->device.common;
 
-#ifdef USES_AUDIO_AMPLIFIER
-    if (amplifier_open() != 0)
-        ALOGE("Amplifier initialization failed");
-#endif
-
     return 0;
 
 err_create_audio_hw:
@@ -869,11 +836,11 @@ struct qcom_audio_module HAL_MODULE_INFO_SYM = {
     module: {
         common: {
             tag: HARDWARE_MODULE_TAG,
-            module_api_version: AUDIO_MODULE_API_VERSION_0_1,
+            module_api_version:  AUDIO_DEVICE_API_VERSION_1_0,
             hal_api_version: HARDWARE_HAL_API_VERSION,
             id: AUDIO_HARDWARE_MODULE_ID,
             name: "QCOM Audio HW HAL",
-            author: "The Linux Foundation",
+            author: "Code Aurora Forum",
             methods: &qcom_audio_module_methods,
             dso : NULL,
             reserved : {0},
