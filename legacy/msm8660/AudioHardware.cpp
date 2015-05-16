@@ -1353,6 +1353,7 @@ status_t AudioHardware::setParameters(const String8& keyValuePairs)
     const char FM_VALUE_SPEAKER[] = "speaker";
     const char FM_VALUE_HEADSET[] = "headset";
     const char FM_VALUE_FALSE[] = "false";
+    float fm_volume;
 #endif
 #ifdef HTC_ACOUSTIC_AUDIO
     const char ACTIVE_AP[] = "active_ap";
@@ -1473,7 +1474,41 @@ status_t AudioHardware::setParameters(const String8& keyValuePairs)
         param.remove(key);
     }
 #endif /*QCOM_VOIP_ENABLED*/
+
+#ifdef QCOM_FM_ENABLED
+    key = String8(AUDIO_PARAMETER_KEY_FM_VOLUME);
+
+    if (param.getFloat(key, fm_volume) == NO_ERROR) {
+        if (fm_volume < 0.0) {
+            ALOGW("set Fm Volume(%f) under 0.0, assuming 0.0\n", fm_volume);
+            fm_volume = 0.0;
+        } else if (fm_volume > 1.0) {
+            ALOGW("set Fm Volume(%f) over 1.0, assuming 1.0\n", fm_volume);
+            fm_volume = 1.0;
+        }
+        fm_volume = lrint((fm_volume * 0x2000) + 0.5);
+
+        ALOGV("set Fm Volume(%f)\n", fm_volume);
+        ALOGV("Setting FM volume to %d (available range is 0 to 0x2000)\n", fm_volume);
+
+        Routing_table* temp = NULL;
+        temp = getNodeByStreamType(FM_RADIO);
+        if(temp == NULL){
+            ALOGV("No Active FM stream is running");
+            return NO_ERROR;
+        }
+        if(msm_set_volume(temp->dec_id, fm_volume)) {
+            ALOGE("msm_set_volume(%d) failed for FM errno = %d", fm_volume, errno);
+            return -1;
+        }
+        ALOGV("msm_set_volume(%d) for FM succeeded", fm_volume);
+
+        param.remove(key);
+    }
+#endif /*QCOM_FM_ENABLED*/
+
     return NO_ERROR;
+
 }
 #ifdef QCOM_VOIP_ENABLED
 
@@ -1776,33 +1811,6 @@ status_t AudioHardware::setVoiceVolume(float v)
     ALOGV("msm_set_voice_rx_vol(%d) succeeded session_id %d",vol,session_id);
     return NO_ERROR;
 }
-
-#ifdef QCOM_FM_ENABLED
-status_t AudioHardware::setFmVolume(float v)
-{
-    int vol = android::AudioSystem::logToLinear( (v?(v + 0.005):v) );
-    if ( vol > 100 ) {
-        vol = 100;
-    }
-    else if ( vol < 0 ) {
-        vol = 0;
-    }
-    ALOGV("setFmVolume(%f)\n", v);
-    ALOGV("Setting FM volume to %d (available range is 0 to 100)\n", vol);
-    Routing_table* temp = NULL;
-    temp = getNodeByStreamType(FM_RADIO);
-    if(temp == NULL){
-        ALOGV("No Active FM stream is running");
-        return NO_ERROR;
-    }
-    if(msm_set_volume(temp->dec_id, vol)) {
-        ALOGE("msm_set_volume(%d) failed for FM errno = %d",vol,errno);
-        return -1;
-    }
-    ALOGV("msm_set_volume(%d) for FM succeeded",vol);
-    return NO_ERROR;
-}
-#endif
 
 status_t AudioHardware::setMasterVolume(float v)
 {
