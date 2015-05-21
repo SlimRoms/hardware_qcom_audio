@@ -164,15 +164,15 @@ public:
     virtual String8     getParameters(const String8& keys);
 
     // create I/O streams
-    virtual AudioStreamOut* openOutputStreamWithFlags(
+    virtual AudioStreamOut* openOutputStream(
                                 uint32_t devices,
-                                audio_output_flags_t flags=(audio_output_flags_t)0,
                                 int *format=0,
                                 uint32_t *channels=0,
                                 uint32_t *sampleRate=0,
                                 status_t *status=0);
-    virtual AudioStreamOut* openOutputStream(
+    virtual AudioStreamOut* openOutputStreamWithFlags(
                                 uint32_t devices,
+                                audio_output_flags_t flags=(audio_output_flags_t)0,
                                 int *format=0,
                                 uint32_t *channels=0,
                                 uint32_t *sampleRate=0,
@@ -521,8 +521,6 @@ public:
     // return the number of audio frames written by the audio dsp to DAC since
     // the output has exited standby
     virtual status_t    getRenderPosition(uint32_t *dspFrames);
-
-    virtual status_t getPresentationPosition(uint64_t *frames, struct timespec *timestamp);
 
     virtual status_t    getNextWriteTimestamp(int64_t *timestamp);
     virtual status_t    setObserver(void *observer);

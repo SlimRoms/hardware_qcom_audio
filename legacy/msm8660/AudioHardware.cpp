@@ -17,7 +17,7 @@
 
 #include <math.h>
 
-#define LOG_NDEBUG 0
+//#define LOG_NDEBUG 0
 #define LOG_TAG "AudioHardwareMSM8660"
 #include <utils/Log.h>
 #include <utils/String8.h>
@@ -987,7 +987,6 @@ status_t AudioHardware::initCheck()
 {
     return mInit ? NO_ERROR : NO_INIT;
 }
-
 // default implementation calls its "without flags" counterpart
 AudioStreamOut* AudioHardware::openOutputStreamWithFlags(uint32_t devices,
                                           audio_output_flags_t flags __unused,
