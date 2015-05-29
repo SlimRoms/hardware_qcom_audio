@@ -17,7 +17,7 @@
 
 #include <math.h>
 
-//#define LOG_NDEBUG 0
+#define LOG_NDEBUG 0
 #define LOG_TAG "AudioHardwareMSM8660"
 #include <utils/Log.h>
 #include <utils/String8.h>
@@ -1338,6 +1338,45 @@ status_t AudioHardware::getMicMute(bool* state)
     return NO_ERROR;
 }
 
+#ifdef QCOM_FM_ENABLED
+void AudioHardware::handleFm(int device)
+{
+    int sndDevice = -1;
+
+    if ((device & AUDIO_DEVICE_OUT_FM) && (mFmFd == -1)){
+        enableFM(sndDevice);
+    }
+    if ((mFmFd != -1) && !(device & AUDIO_DEVICE_OUT_FM)){
+        disableFM();
+    }
+
+    if ((CurrentComboDeviceData.DeviceId == INVALID_DEVICE) &&
+        (sndDevice == SND_DEVICE_FM_TX_AND_SPEAKER )){
+        /* speaker rx is already enabled change snd device to the fm tx
+         * device and let the flow take the regular route to
+         * updatedeviceinfo().
+         */
+        Mutex::Autolock lock_1(mComboDeviceLock);
+
+        CurrentComboDeviceData.DeviceId = SND_DEVICE_FM_TX_AND_SPEAKER;
+        sndDevice = DEVICE_FMRADIO_STEREO_RX;
+    }
+    else
+    if(CurrentComboDeviceData.DeviceId != INVALID_DEVICE){
+        /* time to disable the combo device */
+        enableComboDevice(CurrentComboDeviceData.DeviceId,0);
+        Mutex::Autolock lock_2(mComboDeviceLock);
+        CurrentComboDeviceData.DeviceId = INVALID_DEVICE;
+        CurrentComboDeviceData.StreamType = INVALID_STREAM;
+    }
+
+    if (sndDevice != -1 && sndDevice != mCurSndDevice) {
+        doAudioRouteOrMute(sndDevice);
+        mCurSndDevice = sndDevice;
+    }
+}
+#endif
+
 status_t AudioHardware::setParameters(const String8& keyValuePairs)
 {
     AudioParameter param = AudioParameter(keyValuePairs);
@@ -1354,6 +1393,7 @@ status_t AudioHardware::setParameters(const String8& keyValuePairs)
     const char FM_VALUE_HEADSET[] = "headset";
     const char FM_VALUE_FALSE[] = "false";
     float fm_volume;
+    int fm_device;
 #endif
 #ifdef HTC_ACOUSTIC_AUDIO
     const char ACTIVE_AP[] = "active_ap";
@@ -1505,6 +1545,28 @@ status_t AudioHardware::setParameters(const String8& keyValuePairs)
 
         param.remove(key);
     }
+
+    key = String8("connect");
+
+    if(param.getInt(key, fm_device) == NO_ERROR) {
+        if((fm_device & AUDIO_DEVICE_OUT_FM)) {
+            if(enableDevice(DEVICE_FMRADIO_STEREO_TX, 1)) {
+               ALOGE("setParameters() enableDevice 1 failed for device %d", DEVICE_FMRADIO_STEREO_TX);
+            }
+        }
+    }
+
+    key = String8("disconnect");
+
+    if(param.getInt(key, fm_device) == NO_ERROR) {
+        if((fm_device & AUDIO_DEVICE_OUT_FM)) {
+            if(enableDevice(DEVICE_FMRADIO_STEREO_TX, 0)) {
+               ALOGE("setParameters() enableDevice 0 failed for device %d", DEVICE_FMRADIO_STEREO_TX);
+            }
+        }
+    }
+
+
 #endif /*QCOM_FM_ENABLED*/
 
     return NO_ERROR;
@@ -3737,6 +3799,16 @@ status_t AudioHardware::AudioStreamOutMSM8x60::setParameters(const String8& keyV
         status = mHardware->doRouting(NULL, device);
         param.remove(key);
     }
+
+    key = String8(AUDIO_PARAMETER_KEY_HANDLE_FM);
+    ALOGI("checking Handle FM");
+    if (param.getInt(key, device) == NO_ERROR) {
+        ALOGI("calling Handle FM");
+        mHardware->handleFm(device);
+        param.remove(key);
+    }
+
+
 
     if (param.size()) {
         status = BAD_VALUE;
