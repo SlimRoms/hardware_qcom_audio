@@ -150,9 +150,6 @@ public:
 
     virtual status_t    setVoiceVolume(float volume);
     virtual status_t    setMasterVolume(float volume);
-#ifdef QCOM_FM_ENABLED
-    virtual status_t    setFmVolume(float volume);
-#endif
     virtual status_t    setMode(int mode);
     virtual status_t setMasterMute(bool muted);
 
@@ -234,6 +231,7 @@ private:
 #endif
 #ifdef QCOM_FM_ENABLED
     status_t    enableFM(int sndDevice);
+    void        handleFm(int device);
 #endif
     status_t    enableComboDevice(uint32_t sndDevice, bool enableOrDisable);
 #ifdef QCOM_FM_ENABLED
