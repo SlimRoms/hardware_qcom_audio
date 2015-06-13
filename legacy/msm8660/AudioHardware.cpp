@@ -3800,6 +3800,7 @@ status_t AudioHardware::AudioStreamOutMSM8x60::setParameters(const String8& keyV
         param.remove(key);
     }
 
+#ifdef QCOM_FM_ENABLED
     key = String8(AUDIO_PARAMETER_KEY_HANDLE_FM);
     ALOGI("checking Handle FM");
     if (param.getInt(key, device) == NO_ERROR) {
@@ -3807,8 +3808,7 @@ status_t AudioHardware::AudioStreamOutMSM8x60::setParameters(const String8& keyV
         mHardware->handleFm(device);
         param.remove(key);
     }
-
-
+#endif
 
     if (param.size()) {
         status = BAD_VALUE;
