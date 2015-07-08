@@ -135,12 +135,12 @@ static uint32_t out_get_sample_rate(const struct audio_stream *stream)
     return out->qcom_out->sampleRate();
 }
 
-static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate __unused)
+static int out_set_sample_rate(struct audio_stream *stream, uint32_t rate)
 {
     struct qcom_stream_out *out =
         reinterpret_cast<struct qcom_stream_out *>(stream);
 
-    ALOGE("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
+    ALOGV("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
     /* TODO: implement this */
     return 0;
 }
@@ -156,7 +156,7 @@ static audio_channel_mask_t out_get_channels(const struct audio_stream *stream)
 {
     const struct qcom_stream_out *out =
         reinterpret_cast<const struct qcom_stream_out *>(stream);
-    return out->qcom_out->channels();
+    return (audio_channel_mask_t) out->qcom_out->channels();
 }
 
 static audio_format_t out_get_format(const struct audio_stream *stream)
@@ -166,11 +166,11 @@ static audio_format_t out_get_format(const struct audio_stream *stream)
     return (audio_format_t)out->qcom_out->format();
 }
 
-static int out_set_format(struct audio_stream *stream, audio_format_t format __unused)
+static int out_set_format(struct audio_stream *stream, audio_format_t format)
 {
     struct qcom_stream_out *out =
         reinterpret_cast<struct qcom_stream_out *>(stream);
-    ALOGE("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
+    ALOGV("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
     /* TODO: implement me */
     return 0;
 }
@@ -312,12 +312,12 @@ static status_t out_stop(struct audio_stream_out *stream)
     return out->qcom_out->stop();
 }
 
-static int out_add_audio_effect(const struct audio_stream *stream __unused, effect_handle_t effect __unused)
+static int out_add_audio_effect(const struct audio_stream *stream, effect_handle_t effect)
 {
     return 0;
 }
 
-static int out_remove_audio_effect(const struct audio_stream *stream __unused, effect_handle_t effect __unused)
+static int out_remove_audio_effect(const struct audio_stream *stream, effect_handle_t effect)
 {
     return 0;
 }
@@ -346,12 +346,12 @@ static uint32_t in_get_sample_rate(const struct audio_stream *stream)
     return in->qcom_in->sampleRate();
 }
 
-static int in_set_sample_rate(struct audio_stream *stream, uint32_t rate __unused)
+static int in_set_sample_rate(struct audio_stream *stream, uint32_t rate)
 {
     struct qcom_stream_in *in =
         reinterpret_cast<struct qcom_stream_in *>(stream);
 
-    ALOGE("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
+    ALOGV("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
     /* TODO: implement this */
     return 0;
 }
@@ -367,7 +367,7 @@ static audio_channel_mask_t in_get_channels(const struct audio_stream *stream)
 {
     const struct qcom_stream_in *in =
         reinterpret_cast<const struct qcom_stream_in *>(stream);
-    return in->qcom_in->channels();
+    return (audio_channel_mask_t) in->qcom_in->channels();
 }
 
 static audio_format_t in_get_format(const struct audio_stream *stream)
@@ -377,11 +377,11 @@ static audio_format_t in_get_format(const struct audio_stream *stream)
     return (audio_format_t)in->qcom_in->format();
 }
 
-static int in_set_format(struct audio_stream *stream, audio_format_t format __unused)
+static int in_set_format(struct audio_stream *stream, audio_format_t format)
 {
     struct qcom_stream_in *in =
         reinterpret_cast<struct qcom_stream_in *>(stream);
-    ALOGE("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
+    ALOGV("(%s:%d) %s: Implement me!", __FILE__, __LINE__, __func__);
     /* TODO: implement me */
     return 0;
 }
@@ -572,7 +572,7 @@ static int adev_set_fm_volume(struct audio_hw_device *dev, float volume)
 static int adev_set_mode(struct audio_hw_device *dev, audio_mode_t mode)
 {
     struct qcom_audio_device *qadev = to_ladev(dev);
-    return qadev->hwif->setMode(mode);
+    return qadev->hwif->setMode((int)mode);
 }
 
 static int adev_set_mic_mute(struct audio_hw_device *dev, bool state)
@@ -611,14 +611,14 @@ static size_t adev_get_input_buffer_size(const struct audio_hw_device *dev,
     return qadev->hwif->getInputBufferSize(config->sample_rate,config->format,channelCount);
 }
 
+
 static int adev_open_output_stream(struct audio_hw_device *dev,
-                                   audio_io_handle_t handle __unused,
+                                   audio_io_handle_t handle,
                                    audio_devices_t devices,
                                    audio_output_flags_t flags,
                                    struct audio_config *config,
                                    struct audio_stream_out **stream_out,
                                    const char * address __unused)
-
 {
     struct qcom_audio_device *qadev = to_ladev(dev);
     status_t status;
@@ -632,7 +632,8 @@ static int adev_open_output_stream(struct audio_hw_device *dev,
     devices = convert_audio_device(devices, HAL_API_REV_2_0, HAL_API_REV_1_0);
     status = static_cast<audio_output_flags_t> (flags);
 
-    out->qcom_out = qadev->hwif->openOutputStream(devices, (int *) &config->format,
+    out->qcom_out = qadev->hwif->openOutputStream(devices,
+                                                    (int *)&config->format,
                                                     &config->channel_mask,
                                                     &config->sample_rate,
                                                     &status);
@@ -687,10 +688,10 @@ static void adev_close_output_stream(struct audio_hw_device *dev,
 
 /** This method creates and opens the audio hardware input stream */
 static int adev_open_input_stream(struct audio_hw_device *dev,
-                                  audio_io_handle_t handle __unused,
+                                  audio_io_handle_t handle,
                                   audio_devices_t devices,
                                   audio_config *config,
-                                  audio_stream_in **stream_in, audio_input_flags_t flags __unused,
+                                  audio_stream_in **stream_in, audio_input_flags_t flags,
                                   const char * address __unused,
                                   audio_source_t source __unused)
 {
@@ -851,3 +852,4 @@ struct qcom_audio_module HAL_MODULE_INFO_SYM = {
 }; // extern "C"
 
 }; // namespace android_audio_legacy
+
