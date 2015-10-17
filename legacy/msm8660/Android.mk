@@ -64,9 +64,7 @@ $(shell touch $(OUT)/obj/SHARED_LIBRARIES/libacdbloader_intermediates/export_inc
 $(shell mkdir -p $(OUT)/obj/SHARED_LIBRARIES/libacdbmapper_intermediates/)
 $(shell touch $(OUT)/obj/SHARED_LIBRARIES/libacdbmapper_intermediates/export_includes)
 
-ifneq ($(TARGET_SIMULATOR),true)
 LOCAL_SHARED_LIBRARIES += libdl
-endif
 
 LOCAL_STATIC_LIBRARIES := \
     libmedia_helper \
