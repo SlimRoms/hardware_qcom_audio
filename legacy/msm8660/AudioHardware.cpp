@@ -1109,14 +1109,23 @@ void AudioHardware::closeOutputStream(AudioStreamOut* out) {
 #ifdef QCOM_VOIP_ENABLED
         && mDirectOutput == 0
 #endif
-        && mOutputLPA == 0) || ((mOutput != out)
+#ifdef QCOM_TUNNEL_LPA_ENABLED
+        && mOutputLPA == 0
+#endif
+        ) || ((mOutput != out)
 #ifdef QCOM_VOIP_ENABLED
          && (mDirectOutput != out)
 #endif
 #ifdef TUNNEL_PLAYBACK
         && (mOutputTunnel!= out)
 #endif /*TUNNEL_PLAYBACK*/
-       && (mOutputLPA != out))) {
+#ifdef QCOM_TUNNEL_LPA_ENABLED
+       && (mOutputLPA != out))
+#else
+       )
+#endif
+       )
+    {
         ALOGW("Attempt to close invalid output stream");
     }
     else if (mOutput == out) {
@@ -1133,11 +1142,13 @@ void AudioHardware::closeOutputStream(AudioStreamOut* out) {
         }
     }
 #endif
+#ifdef QCOM_TUNNEL_LPA_ENABLED
     else if (mOutputLPA == out) {
         ALOGV(" deleting  mOutputLPA \n");
         delete mOutputLPA;
         mOutputLPA = 0;
     }
+#endif
 #ifdef TUNNEL_PLAYBACK
     else if (mOutputTunnel == out) {
         ALOGD("Closing Tunnel Output");
@@ -4944,12 +4955,14 @@ status_t AudioHardware::AudioSessionOutLPA::stop()
     return NO_ERROR;
 }
 
+#ifdef QCOM_TUNNEL_LPA_ENABLED
 status_t AudioHardware::AudioSessionOutLPA::setObserver(void *observer)
 {
     ALOGV("Registering the callback \n");
     mObserver = reinterpret_cast<AudioEventObserver *>(observer);
     return NO_ERROR;
 }
+#endif
 
 status_t  AudioHardware::AudioSessionOutLPA::getNextWriteTimestamp(int64_t *timestamp)
 {
@@ -5008,6 +5021,7 @@ status_t AudioHardware::AudioSessionOutLPA::getPresentationPosition(uint64_t *fr
     return INVALID_OPERATION;
 }
 
+#ifdef QCOM_TUNNEL_LPA_ENABLED
 status_t AudioHardware::AudioSessionOutLPA::getBufferInfo(buf_info **buf) {
 
     buf_info *tempbuf = (buf_info *)malloc(sizeof(buf_info) + mInputBufferCount*sizeof(int *));
@@ -5023,6 +5037,7 @@ status_t AudioHardware::AudioSessionOutLPA::getBufferInfo(buf_info **buf) {
     *buf = tempbuf;
     return NO_ERROR;
 }
+#endif
 
 status_t AudioHardware::AudioSessionOutLPA::isBufferAvailable(int *isAvail) {
 
@@ -5736,12 +5751,14 @@ status_t AudioHardware::AudioSessionOutTunnel::stop()
     return NO_ERROR;
 }
 
+#ifdef QCOM_TUNNEL_LPA_ENABLED
 status_t AudioHardware::AudioSessionOutTunnel::setObserver(void *observer)
 {
     ALOGV("Registering the callback \n");
     mObserver = reinterpret_cast<AudioEventObserver *>(observer);
     return NO_ERROR;
 }
+#endif
 
 status_t  AudioHardware::AudioSessionOutTunnel::getNextWriteTimestamp(int64_t *timestamp)
 {
