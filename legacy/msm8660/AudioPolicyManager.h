@@ -61,7 +61,7 @@ public:
         virtual audio_io_handle_t getOutput(AudioSystem::stream_type stream,
                                             uint32_t samplingRate,
                                             audio_format_t format,
-					    audio_channel_mask_t channelMask,
+					    															audio_channel_mask_t channelMask,
                                             AudioSystem::output_flags flags,
                                                      const audio_offload_info_t *offloadInfo = NULL);
         virtual status_t startOutput(audio_io_handle_t output,
