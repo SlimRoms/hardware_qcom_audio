@@ -11,18 +11,6 @@ ifeq ($(QCOM_FM_ENABLED),true)
   common_cflags += -DQCOM_FM_ENABLED
 endif
 
-ifeq ($(BOARD_QCOM_TUNNEL_LPA_ENABLED),true)
-  common_cflags += -DQCOM_TUNNEL_LPA_ENABLED
-endif
-
-ifeq ($(BOARD_QCOM_VOIP_ENABLED),true)
-  common_cflags += -DQCOM_VOIP_ENABLED
-endif
-
-ifeq ($(BOARD_QCOM_TUNNEL_PLAYBACK_ENABLED),true)
-  common_cflags += -DTUNNEL_PLAYBACK
-endif
-
 ifeq ($(BOARD_USES_QCOM_HARDWARE),true)
   common_cflags += -DQCOM_ACDB_ENABLED
 endif
