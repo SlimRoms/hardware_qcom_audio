@@ -2286,25 +2286,6 @@ status_t AudioHardware::doRouting(AudioStreamInMSM8x60 *input, uint32_t outputDe
                     ALOGI("Routing audio to Wired Headset\n");
                     sndDevice = SND_DEVICE_HEADSET;
                 }
-            }
-            else if (isStreamOnAndActive(PCM_PLAY)) {
-                if (outputDevices & AUDIO_DEVICE_OUT_EARPIECE) {
-                    ALOGI("Routing audio to Handset\n");
-                    sndDevice = SND_DEVICE_HANDSET;
-                } else if (outputDevices & AUDIO_DEVICE_OUT_WIRED_HEADPHONE) {
-                    ALOGI("Routing audio to Speakerphone (LPA headphone case)\n");
-                    sndDevice = SND_DEVICE_NO_MIC_HEADSET;
-                }
-#ifdef QCOM_FM_ENABLED
-                 else if (outputDevices & AUDIO_DEVICE_OUT_FM_TX) {
-                    ALOGE("Routing audio_rx to Speaker\n");
-                    sndDevice = SND_DEVICE_SPEAKER_TX;
-                }
-#endif
-                else {
-                    ALOGI("Routing audio to Speaker (LPA case)\n");
-                    sndDevice = SND_DEVICE_SPEAKER;
-                }
             } else {
                 ALOGI("Routing audio to Speaker (default)\n");
                 sndDevice = SND_DEVICE_SPEAKER;
