@@ -2338,15 +2338,6 @@ status_t AudioHardware::doRouting(AudioStreamInMSM8x60 *input, uint32_t outputDe
             sndDevice = SND_DEVICE_HEADSET_AND_SPEAKER;
             audProcess = (ADRC_ENABLE | EQ_ENABLE | RX_IIR_ENABLE | MBADRC_ENABLE);
         } else 
-#ifdef QCOM_FM_ENABLED
-          if ((outputDevices & AUDIO_DEVICE_OUT_FM_TX) &&
-                   (outputDevices & AUDIO_DEVICE_OUT_SPEAKER)) {
-            ALOGI("Routing audio to FM Tx and Speaker\n");
-            sndDevice = SND_DEVICE_FM_TX_AND_SPEAKER;
-            enableComboDevice(sndDevice,1);
-            audProcess = (ADRC_ENABLE | EQ_ENABLE | RX_IIR_ENABLE | MBADRC_ENABLE);
-        }  else
-#endif
           if (outputDevices & AUDIO_DEVICE_OUT_WIRED_HEADPHONE) {
             if (outputDevices & AUDIO_DEVICE_OUT_SPEAKER) {
                 ALOGI("Routing audio to No microphone Wired Headset and Speaker (%d,%x)\n", mMode, outputDevices);
@@ -2377,13 +2368,6 @@ status_t AudioHardware::doRouting(AudioStreamInMSM8x60 *input, uint32_t outputDe
             }
 #endif
         } else
-#ifdef QCOM_FM_ENABLED
-         if (outputDevices & AUDIO_DEVICE_OUT_FM_TX){
-            ALOGI("Routing audio to FM Tx Device\n");
-            sndDevice = SND_DEVICE_FM_TX;
-            audProcess = (ADRC_ENABLE | EQ_ENABLE | RX_IIR_ENABLE | MBADRC_ENABLE);
-        } else
-#endif
           if(outputDevices & AUDIO_DEVICE_OUT_EARPIECE){
 #ifdef SAMSUNG_AUDIO
             if (mMode == AUDIO_MODE_IN_CALL) {

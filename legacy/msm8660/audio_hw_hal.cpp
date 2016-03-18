@@ -81,9 +81,6 @@ static uint32_t audio_device_conv_table[][HAL_API_REV_NUM] =
 #ifdef QCOM_FM_ENABLED
     { AudioSystem::DEVICE_OUT_FM, AUDIO_DEVICE_OUT_FM },
 #endif
-#ifdef QCOM_FM_TX_ENABLED
-    { AudioSystem::DEVICE_OUT_FM_TX, AUDIO_DEVICE_OUT_FM_TX },
-#endif
     /* input devices */
     { AudioSystem::DEVICE_IN_COMMUNICATION, AUDIO_DEVICE_IN_COMMUNICATION },
     { AudioSystem::DEVICE_IN_AMBIENT, AUDIO_DEVICE_IN_AMBIENT },
@@ -459,7 +456,6 @@ static uint32_t adev_get_supported_devices(const struct audio_hw_device *dev)
             AUDIO_DEVICE_OUT_REMOTE_SUBMIX |
 #ifdef QCOM_FM_ENABLED
             AUDIO_DEVICE_OUT_FM |
-            AUDIO_DEVICE_OUT_FM_TX |
 #endif
             AUDIO_DEVICE_OUT_DEFAULT |
             /* IN */
