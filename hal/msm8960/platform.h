@@ -110,6 +110,8 @@ enum {
 #define LOW_LATENCY_OUTPUT_PERIOD_SIZE 240
 #define LOW_LATENCY_OUTPUT_PERIOD_COUNT 2
 
+#define DEVICE_NAME_MAX_SIZE 128
+
 #define HDMI_MULTI_PERIOD_SIZE  336
 #define HDMI_MULTI_PERIOD_COUNT 8
 #define HDMI_MULTI_DEFAULT_CHANNEL_COUNT 6
@@ -126,4 +128,6 @@ enum {
 #define AFE_PROXY_RECORD_PCM_DEVICE 8
 
 
+#define PLATFORM_INFO_XML_PATH          "/system/etc/audio_platform_info.xml"
+#define PLATFORM_INFO_XML_BASE_STRING   "/system/etc/audio_platform_info"
 #endif // QCOM_AUDIO_PLATFORM_H
