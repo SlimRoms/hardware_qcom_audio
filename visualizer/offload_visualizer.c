@@ -867,6 +867,18 @@ int visualizer_command(effect_context_t * context, uint32_t cmdCode, uint32_t cm
         break;
 
     case VISUALIZER_CMD_MEASURE: {
+        if (pReplyData == NULL || replySize == NULL ||
+                *replySize < (sizeof(int32_t) * MEASUREMENT_COUNT)) {
+            if (replySize == NULL) {
+                ALOGV("%s VISUALIZER_CMD_MEASURE error replySize NULL", __func__);
+            } else {
+                ALOGV("%s VISUALIZER_CMD_MEASURE error *replySize %u <"
+                        "(sizeof(int32_t) * MEASUREMENT_COUNT) %zu",
+                        __func__, *replySize, sizeof(int32_t) * MEASUREMENT_COUNT);
+            }
+            android_errorWriteLog(0x534e4554, "30229821");
+            return -EINVAL;
+        }
         uint16_t peak_u16 = 0;
         float sum_rms_squared = 0.0f;
         uint8_t nb_valid_meas = 0;
