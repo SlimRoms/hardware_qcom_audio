@@ -4435,6 +4435,11 @@ int platform_get_wsa_mode (void *adev)
     return 0;
 }
 
+int platform_get_max_mic_count(void *platform) {
+    struct platform_data *my_data = (struct platform_data *)platform;
+    return my_data->max_mic_count;
+}
+
 int platform_set_snd_device_name(snd_device_t device, const char *name)
 {
     int ret = 0;
@@ -4448,9 +4453,4 @@ int platform_set_snd_device_name(snd_device_t device, const char *name)
     device_table[device] = strdup(name);
 done:
     return ret;
-}
-
-int platform_get_max_mic_count(void *platform) {
-    struct platform_data *my_data = (struct platform_data *)platform;
-    return my_data->max_mic_count;
 }
