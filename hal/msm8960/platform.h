@@ -131,5 +131,8 @@ enum {
 #define AFE_PROXY_PLAYBACK_PCM_DEVICE 7
 #define AFE_PROXY_RECORD_PCM_DEVICE 8
 
+#define HFP_PCM_RX 5
+#define HFP_SCO_RX 23
+#define HFP_ASM_RX_TX 24
 
 #endif // QCOM_AUDIO_PLATFORM_H
