@@ -1,0 +1,21 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "7029c179_cebeba2f",
+        "filename": "policy_hal/AudioPolicyManager.cpp",
+        "patchSetId": 1
+      },
+      "lineNbr": 2312,
+      "author": {
+        "id": 1000017
+      },
+      "writtenOn": "2017-07-12T17:51:39Z",
+      "side": 1,
+      "message": "Hmmm couldn\u0027t we just pull this out of the \"if\" statement?\n\n      mPrevPhoneState(0)\n#ifdef FM_POWER_OPT\n      ,mPrevFMVolumeDb(0.0f),\n      mFMIsActive(false)\n#endif",
+      "revId": "0763a3845eef593a9b43e4ce78472846052fe81d",
+      "serverId": "f8201d64-d729-4630-b91d-5f8be02869f0",
+      "unresolved": false
+    }
+  ]
+}
