@@ -64,7 +64,7 @@
 #define MAX_RESISTANCE_SPKR_Q24 (40 * (1 << 24))
 
 /*Path where the calibration file will be stored*/
-#define CALIB_FILE "/data/misc/audio/audio.cal"
+#define CALIB_FILE "/data/vendor/misc/audio/audio.cal"
 
 /*Time between retries for calibartion or intial wait time
   after boot up*/
@@ -119,7 +119,11 @@ struct speaker_prot_session {
     int (*thermal_client_request)(char *client_name, int req_data);
     bool spkr_prot_enable;
     bool spkr_in_use;
-   struct timespec spkr_last_time_used;
+    pthread_mutex_t cal_wait_cond_mutex;
+    pthread_cond_t cal_wait_condition;
+    struct timespec spkr_last_time_used;
+    bool init_check;
+    volatile bool thread_exit;
 };
 
 static struct pcm_config pcm_config_skr_prot = {
@@ -612,10 +616,11 @@ static void* spkr_calibration_thread()
             pthread_exit(0);
             return NULL;
         }
-        close(acdb_fd);
     }
+    if (acdb_fd > 0)
+        close(acdb_fd);
 
-    while (1) {
+    while (!handle.thread_exit) {
         ALOGV("%s: start calibration", __func__);
         if (!handle.thermal_client_request("spkr",1)) {
             ALOGD("%s: wait for callback from thermal daemon", __func__);
@@ -696,6 +701,7 @@ static int thermal_client_callback(int temp)
 void audio_extn_spkr_prot_init(void *adev)
 {
     char value[PROPERTY_VALUE_MAX];
+    int result = 0;
     ALOGD("%s: Initialize speaker protection module", __func__);
     memset(&handle, 0, sizeof(handle));
     if (!adev) {
@@ -704,6 +710,8 @@ void audio_extn_spkr_prot_init(void *adev)
     }
     property_get("persist.vendor.audio.speaker.prot.enable", value, "");
     handle.spkr_prot_enable = false;
+    handle.init_check = false;
+    handle.thread_exit = false;
     if (!strncmp("true", value, 4))
        handle.spkr_prot_enable = true;
     if (!handle.spkr_prot_enable) {
@@ -750,8 +758,20 @@ void audio_extn_spkr_prot_init(void *adev)
     }
     if (handle.thermal_client_request) {
         ALOGD("%s: Create calibration thread", __func__);
-        (void)pthread_create(&handle.spkr_calibration_thread,
+        result = pthread_create(&handle.spkr_calibration_thread,
         (const pthread_attr_t *) NULL, spkr_calibration_thread, &handle);
+        if (result == 0) {
+            handle.init_check = true;
+        } else {
+            ALOGE("%s: speaker calibration thread creation failed", __func__);
+            pthread_mutex_destroy(&handle.mutex_spkr_prot);
+            pthread_mutex_destroy(&handle.spkr_calib_cancelack_mutex);
+            pthread_mutex_destroy(&handle.cal_wait_cond_mutex);
+            pthread_cond_destroy(&handle.spkr_calib_cancel);
+            pthread_cond_destroy(&handle.spkr_calibcancel_ack);
+            pthread_mutex_destroy(&handle.spkr_prot_thermalsync_mutex);
+            pthread_cond_destroy(&handle.spkr_prot_thermalsync);
+        }
     } else {
         ALOGE("%s: thermal_client_request failed", __func__);
         if (handle.thermal_client_handle &&
@@ -772,6 +792,37 @@ void audio_extn_spkr_prot_init(void *adev)
                                             "SLIMBUS_0_RX");
         }
     }
+}
+
+static void spkr_calibrate_signal()
+{
+    pthread_mutex_lock(&handle.cal_wait_cond_mutex);
+    pthread_cond_signal(&handle.cal_wait_condition);
+    pthread_mutex_unlock(&handle.cal_wait_cond_mutex);
+}
+
+int audio_extn_spkr_prot_deinit()
+{
+    int result = 0;
+
+    ALOGD("%s: Entering deinit init_check :%d", __func__, handle.init_check);
+    if(!handle.init_check)
+        return -1;
+
+    handle.thread_exit = true;
+    spkr_calibrate_signal();
+    result = pthread_join(handle.spkr_calibration_thread, (void **) NULL);
+    if (result < 0) {
+        ALOGE("%s:Unable to join the calibration thread", __func__);
+        return -1;
+    }
+    pthread_mutex_destroy(&handle.mutex_spkr_prot);
+    pthread_mutex_destroy(&handle.spkr_calib_cancelack_mutex);
+    pthread_mutex_destroy(&handle.cal_wait_cond_mutex);
+    pthread_cond_destroy(&handle.spkr_calib_cancel);
+    pthread_cond_destroy(&handle.spkr_calibcancel_ack);
+    memset(&handle, 0, sizeof(handle));
+    return 0;
 }
 
 int audio_extn_spkr_prot_get_acdb_id(snd_device_t snd_device)

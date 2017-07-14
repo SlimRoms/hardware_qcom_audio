@@ -1984,6 +1984,7 @@ static int out_standby_l(struct audio_stream *stream)
     struct stream_out *out = (struct stream_out *)stream;
     struct audio_device *adev = out->dev;
 
+    ALOGVV("%s",__func__);
     if (!out->standby) {
         if (adev->adm_deregister_stream)
             adev->adm_deregister_stream(adev->adm_data, out->handle);
@@ -2021,6 +2022,7 @@ static int out_standby(struct audio_stream *stream)
 {
     struct stream_out *out = (struct stream_out *)stream;
 
+    ALOGVV("%s",__func__);
     ALOGV("%s: enter: usecase(%d: %s)", __func__,
           out->usecase, use_case_table[out->usecase]);
 
