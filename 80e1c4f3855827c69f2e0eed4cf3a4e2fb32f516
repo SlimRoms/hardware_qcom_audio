@@ -1,0 +1,38 @@
+{
+  "comments": [
+    {
+      "key": {
+        "uuid": "61d19e95_f311adbf",
+        "filename": "configs/msm8998/mixer_paths_tasha.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 2244,
+      "author": {
+        "id": 1000017
+      },
+      "writtenOn": "2017-08-09T08:33:06Z",
+      "side": 1,
+      "message": "Tabs instead of spaces",
+      "revId": "80e1c4f3855827c69f2e0eed4cf3a4e2fb32f516",
+      "serverId": "f8201d64-d729-4630-b91d-5f8be02869f0",
+      "unresolved": false
+    },
+    {
+      "key": {
+        "uuid": "381cf7df_7c115794",
+        "filename": "configs/msm8998/mixer_paths_tasha.xml",
+        "patchSetId": 1
+      },
+      "lineNbr": 2288,
+      "author": {
+        "id": 1000017
+      },
+      "writtenOn": "2017-08-09T08:33:06Z",
+      "side": 1,
+      "message": "Tabs instead of spaces",
+      "revId": "80e1c4f3855827c69f2e0eed4cf3a4e2fb32f516",
+      "serverId": "f8201d64-d729-4630-b91d-5f8be02869f0",
+      "unresolved": false
+    }
+  ]
+}
