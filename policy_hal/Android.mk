@@ -38,6 +38,7 @@ LOCAL_SHARED_LIBRARIES := \
     libserviceutility
 
 LOCAL_STATIC_LIBRARIES := \
+    libbase \
     libmedia_helper \
 
 LOCAL_CFLAGS += -Wall -Werror
