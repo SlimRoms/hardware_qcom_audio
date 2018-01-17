@@ -1127,7 +1127,6 @@ status_t AudioPolicyManagerCustom::stopSource(sp<AudioOutputDescriptor> outputDe
 status_t AudioPolicyManagerCustom::startSource(sp<AudioOutputDescriptor> outputDesc1,
                                              audio_stream_type_t stream,
                                              audio_devices_t device,
-                                             const char *address,
                                              uint32_t *delayMs)
 {
     // cannot start playback of STREAM_TTS if any other output is being used
@@ -1195,7 +1194,7 @@ status_t AudioPolicyManagerCustom::startSource(sp<AudioOutputDescriptor> outputD
             }
         }
         uint32_t muteWaitMs;
-        muteWaitMs = setOutputDevice(outputDesc, device, force, 0, NULL, address);
+        muteWaitMs = setOutputDevice(outputDesc, device, force);
 
         // handle special case for sonification while in call
         if (isInCall()) {
