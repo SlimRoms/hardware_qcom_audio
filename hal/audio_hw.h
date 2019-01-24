@@ -358,6 +358,7 @@ struct stream_out {
     bool stream_config_changed;
     mix_matrix_params_t pan_scale_params;
     mix_matrix_params_t downmix_params;
+    bool set_dual_mono;
 };
 
 struct stream_in {
@@ -491,6 +492,7 @@ struct audio_device {
     bool bt_wb_speech_enabled;
     bool allow_afe_proxy_usage;
     bool is_charging; // from battery listener
+    bool mic_break_enabled;
 
     int snd_card;
     card_status_t card_status;
@@ -539,6 +541,7 @@ struct audio_device {
     struct audio_device_config_param *device_cfg_params;
     unsigned int interactive_usecase_state;
     bool dp_allowed_for_voice;
+    void *ext_hw_plugin;
     amplifier_device_t *amp;
 };
 
