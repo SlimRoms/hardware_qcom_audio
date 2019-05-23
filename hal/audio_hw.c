@@ -2392,7 +2392,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
         ret = compress_write(out->compr, buffer, bytes);
         if (ret < 0)
             ret = -errno;
-        ALOGVV("%s: writing buffer (%d bytes) to compress device returned %d", __func__, bytes, ret);
+        ALOGVV("%s: writing buffer (%zu bytes) to compress device returned %zd", __func__, bytes, ret);
         if (ret >= 0 && ret < (ssize_t)bytes) {
             ALOGD("No space available in compress driver, post msg to cb thread");
             send_offload_cmd_l(out, OFFLOAD_CMD_WAIT_FOR_BUFFER);
@@ -2423,7 +2423,7 @@ static ssize_t out_write(struct audio_stream_out *stream, const void *buffer,
             if (out->muted)
                 memset((void *)buffer, 0, bytes);
 
-            ALOGVV("%s: writing buffer (%d bytes) to pcm device", __func__, bytes);
+            ALOGVV("%s: writing buffer (%zu bytes) to pcm device", __func__, bytes);
 
             if (adev->adm_request_focus)
                 adev->adm_request_focus(adev->adm_data, out->handle);
